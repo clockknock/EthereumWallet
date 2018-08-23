@@ -1,13 +1,13 @@
-import React, {Component} from 'react';
-import Web3 from 'web3';
-import bip39 from 'bip39';
-import QrCode from 'qrcode';
-import "./App.css";
-import HdWalletProvider from "truffle-hdwallet-provider";
+require("./App.css")    ;
+let {etherscanAK, infuraApiKey} = require("./config");
+let React = require("react");
+let Web3 = require('web3');
+let bip39 = require('bip39');
+let QrCode = require('qrcode');
+let HdWalletProvider = require("truffle-hdwallet-provider");
 
-import {etherscanAK, infuraApiKey} from "./config"
 
-class App extends Component {
+class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
