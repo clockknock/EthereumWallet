@@ -55,8 +55,11 @@ class App extends React.Component {
     };
 
     //通过textarea填入的助记词重新生成web3对象
-    generatePubAndPriv = async () => {
+    generatePubAndPrivFromMnemonic = async () => {
         this.initWeb3(this.state.mnemonic);
+        //先移除localStorage保存的助记词,再存入
+        localStorage.removeItem("mnemonic");
+        localStorage.setItem("mnemonic", this.state.mnemonic);
     };
 
     //生成二维码的方法
@@ -97,7 +100,7 @@ class App extends React.Component {
     };
 
     //获取当前钱包的历史交易
-    getTransactionInfomations = () => {
+    getTransactionInformation = () => {
         let {account} = this.state;
         let transInfosApi = `https://api-rinkeby.etherscan.io/api?module=account&action=txlist&address=${account}&startblock=0&endblock=99999999&sort=asc&apikey=${etherscanAK}`;
         fetch(transInfosApi)
@@ -160,10 +163,11 @@ class App extends React.Component {
             <div className="App">
                 <br/>
                 <br/>
+                <h1>Rinkeby测试网络钱包</h1>
 
                 <input type="button" value={"点击获取助记词"} onClick={this.generateMnemonic}/>
                 <br/>
-                <input type="button" value={"根据助记词生成帐号"} onClick={this.generatePubAndPriv}/>
+                <input type="button" value={"根据助记词生成帐号(同时生成web3对象)"} onClick={this.generatePubAndPrivFromMnemonic}/>
                 <br/>
                 <textarea cols="30" rows="10" onChange={this.onMnemonicTextareaChange} placeholder={"有助记词?输入助记词"}
                           value={this.state.mnemonic}/>
@@ -201,7 +205,7 @@ class App extends React.Component {
                 </div>
                 <div>
                     <p>获取历史交易</p>
-                    <input type="button" value={"获取历史交易"} onClick={this.getTransactionInfomations}/>
+                    <input type="button" value={"获取历史交易"} onClick={this.getTransactionInformation}/>
                     <table>
                         <thead>
                         <tr>
