@@ -1,4 +1,4 @@
-require("./App.css")    ;
+require("./App.css");
 let {etherscanAK, infuraApiKey} = require("./config");
 let React = require("react");
 let Web3 = require('web3');
@@ -17,6 +17,9 @@ class App extends React.Component {
             privateKey: "",
             restoreFromPrivateKey: "",
             transferTo: "",
+            transferMsg: "",
+            transHash: "0xc9e1aaeec4ab460fd5b3f8021a5d797b6f7e7a216bb9c134afbb2d00aae35440",
+            transactionInfo: "",
             balance: 0,
             transValue: 0,
             transInfo: [],
@@ -73,12 +76,15 @@ class App extends React.Component {
 
     //转账交易
     transferTo = async () => {
-        let {web3, account, transValue, transferTo} = this.state;
-        let receipt = await  web3.eth.sendTransaction({
+        let {web3, account, transValue, transferTo, transferMsg} = this.state;
+        let hexMsg = Buffer.from(transferMsg, "utf-8").toString("hex");
+        console.log(hexMsg);
+        let receipt = await web3.eth.sendTransaction({
             from: account,
             to: transferTo,
             value: transValue,
-            gas: '1000000'
+            gas: '1000000',
+            data: hexMsg
         });
         alert("转账成功,交易hash是:" + receipt.transactionHash);
         //转账后重新获取一下余额
@@ -133,6 +139,15 @@ class App extends React.Component {
         }
     };
 
+    getTransFromHash = async (e) => {
+        let {web3, transHash} = this.state;
+        let transaction = await web3.eth.getTransaction(transHash);
+        // let block =await web3.eth.getBlock(2936613);
+        // console.table(block);
+        this.setState({transactionInfo: transaction})
+    };
+
+
     //各个dom的值受控
     onPrivKeyInputChange = (e) => {
         this.setState({privateKey: e.target.value})
@@ -147,6 +162,12 @@ class App extends React.Component {
     onTransferValueChange = (e) => {
         this.setState({transValue: e.target.value})
     };
+    onGetTransHashChange = (e) => {
+        this.setState({transHash: e.target.value})
+    };
+    onTransferMsgChange = (e) => {
+        this.setState({transferMsg: e.target.value})
+    };
 
     render() {
         let transTd = this.state.transInfo.map((trans, index) => {
@@ -154,10 +175,23 @@ class App extends React.Component {
                 <tr key={index}>
                     <td>{trans.hash}</td>
                     <td>{trans.timeStamp}</td>
+                    <td>{new Date(parseInt(trans.timeStamp,10) * 1000).toLocaleString()}</td>
                     <td>{trans.value}</td>
                 </tr>
             )
         });
+
+        let transInfo = [];
+        for (let prop in this.state.transactionInfo) {
+            let tr = (
+                <tr key={prop}>
+                    <td>{prop}</td>
+                    <td>{this.state.transactionInfo[prop]}</td>
+                </tr>
+            );
+            transInfo.push(tr);
+        }
+
 
         return (
             <div className="App">
@@ -172,14 +206,14 @@ class App extends React.Component {
                 <textarea cols="30" rows="10" onChange={this.onMnemonicTextareaChange} placeholder={"有助记词?输入助记词"}
                           value={this.state.mnemonic}/>
                 <br/>
-                <p>你的公钥:</p>
+                <h2>你的公钥:</h2>
                 <textarea value={this.state.account} placeholder={"你的公钥"} disabled="true"/>
                 <br/>
                 <canvas id={"publicKeyQrCode"}/>
                 <hr/>
 
                 <div>
-                    <p>从私钥恢复account</p>
+                    <h2>从私钥恢复account</h2>
                     <textarea placeholder={"请输入备份好的私钥"} onChange={this.onPrivKeyInputChange}/>
                     <br/>
                     <input type="button" value={"开始恢复"} onClick={this.restoreAccountFromPrivateKey}/>
@@ -189,6 +223,7 @@ class App extends React.Component {
                 <hr/>
 
                 <div>
+                    <h2>查看余额</h2>
                     <p>
                         <input type="button" value="查看余额" onClick={this.getBalance}/>
                     </p>
@@ -197,20 +232,22 @@ class App extends React.Component {
                 <hr/>
 
                 <div>
-                    <p>转账</p>
+                    <h2>转账</h2>
                     to:<textarea value={this.state.transferTo} onChange={this.onTransferToChange}/><br/>
                     value:<input type="number" value={this.state.transValue}
                                  onChange={this.onTransferValueChange}/><br/>
+                    msg:<textarea value={this.state.transferMsg} onChange={this.onTransferMsgChange}/><br/>
                     <input type="button" value={"执行转账"} onClick={this.transferTo}/>
                 </div>
                 <div>
-                    <p>获取历史交易</p>
+                    <h2>获取历史交易</h2>
                     <input type="button" value={"获取历史交易"} onClick={this.getTransactionInformation}/>
                     <table>
                         <thead>
                         <tr>
                             <td>txHash</td>
                             <td>timeStamp</td>
+                            <td>转换后的</td>
                             <td>value</td>
                         </tr>
                         </thead>
@@ -220,6 +257,26 @@ class App extends React.Component {
                     </table>
                 </div>
                 <hr/>
+
+                <div>
+                    <h2>其他相关方法</h2>
+                    <hr/>
+                    <h4>根据trans hash获取交易信息</h4>
+                    <textarea value={this.state.transHash} onChange={this.onGetTransHashChange}/>
+                    <br/>
+                    <input type="button" value={"查询"} onClick={this.getTransFromHash}/>
+                    <br/><br/>
+                    <table>
+                        <tbody>
+                        <tr>
+                            <td>key</td>
+                            <td>value</td>
+                        </tr>
+                        {transInfo}
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
         );
     }

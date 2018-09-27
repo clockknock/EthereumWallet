@@ -22,5 +22,6 @@ yarn-error.log*
 
 
 .idea
+yarn.lock
 config.js
 package-lock.json
