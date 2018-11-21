@@ -83,7 +83,7 @@ class App extends React.Component {
             from: account,
             to: transferTo,
             value: transValue,
-            gas: '1000000',
+            gas: '100000',
             data: hexMsg
         });
         alert("转账成功,交易hash是:" + receipt.transactionHash);
@@ -115,7 +115,7 @@ class App extends React.Component {
             })
             .then(res => {
                 console.log(res.result);
-                this.setState({transInfo: res.result})
+                this.setState({transInfo: res.result.reverse()})
             })
     };
 
