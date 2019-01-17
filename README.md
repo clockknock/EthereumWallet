@@ -1,8 +1,15 @@
-###简单的钱包练习项目
+### 简单的钱包练习项目
+
+
+
+[README for english at here.](./README_EN.md)
+
+
+
 Rinkeby测试网络的非节点简单钱包.github地址:https://github.com/clockknock/wallet ,欢迎start
 基于web3js+React.js的以太坊Rinkeby测试网络钱包,基本功能齐全,简单易懂有注释,适合初学者学习. 
 
-####Quick Start
+#### Quick Start
 
 在src目录下生成config.js,填入以下内容,就可以`npm run start` 开始了
 
