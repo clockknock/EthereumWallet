@@ -1,5 +1,5 @@
 ### Ethereum Wallet for Rinkeby
-Simple but workful wallet for Rinkeby testnet. Welcome to start.
+Simple but workful wallet for Ethereum. Welcome to start.
 base on web3js+React.js. Good example for beginer. 
 
 #### Quick Start
