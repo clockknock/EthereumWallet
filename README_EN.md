@@ -7,27 +7,27 @@ base on web3js+React.js. Good example for beginer.
 create a `config.js` at `src` dir, and fill `etherscanAK `   and  `infuraApiKey`, then `npm run start`
 
 ```js
-let etherscanAK = "you EtherScan ApiKey";
-let infuraApiKey = "your Infura ApiKey";
-
 module.exports={etherscanAK,infuraApiKey};
+
+let Config={
+    rinkeby:{
+        etherscanAK:"you EtherScan ApiKey",
+        infuraApiKey:"your Infura ApiKey",
+        etherscanBaseUrl:"api-rinkeby.etherscan.io"
+    },
+    mainnet:{
+        etherscanAK:"you EtherScan ApiKey",
+        infuraApiKey:"your Infura ApiKey",
+        etherscanBaseUrl:"api.etherscan.io"
+    }
+};
+
+module.exports=Config;
 ```
-ps: after install,change code under `node_modules/truffle-hdwallet-provider/index.js`,`truffle-hdwallet-provider/index.js`:
-
-```js
-var hdkey = require('ethereumjs-wallet/hdkey');
-```
-
-to
-
-```js
-var hdkey = require('ethereumjs-wallet/dist/hdkey');
-```
-
 
 
 you can see the this demo run at:http://193.112.157.22:3000/
 
 
 
-main methods on `/src/App.js`, please google how to get EtherScan's and Infura's ApiKey .
+ methods are at `/src/App.js`, please check these website to get [EtherScan's](https://etherscan.io/apis) and [Infura's](https://infura.io/) ApiKey.

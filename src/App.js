@@ -1,5 +1,5 @@
 require("./App.css");
-let {etherscanAK, infuraApiKey} = require("./config");
+let Config = require("./config");
 let React = require("react");
 let Web3 = require('web3');
 let bip39 = require('bip39');
@@ -11,15 +11,21 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            etherscanBaseUrl: "",
+            etherscanAK: "",
+            infuraApiKey: "",
             mnemonic: "",
             account: "",
             accounts: [],
             privateKey: "",
             restoreFromPrivateKey: "",
-            transferTo: "",
-            transferMsg: "",
+            transferTo: "0x45b08216E4A28d73922b5fE7F78a2fEF5a1Badbe",
+            transferMsg: "donate",
             transHash: "0xc9e1aaeec4ab460fd5b3f8021a5d797b6f7e7a216bb9c134afbb2d00aae35440",
             transactionInfo: "",
+            transferBtnMsg: "transfer",
+            netChoose: "rinkeby",
+            disableTransfer: false,
             balance: 0,
             transValue: 0,
             transInfo: [],
@@ -31,11 +37,25 @@ class App extends React.Component {
         //查看localStorage是否存在,如果有则直接恢复
         let mnemonic = localStorage.getItem("mnemonic");
         if (mnemonic) {
-            this.initWeb3(mnemonic);
+            this.initWeb3(mnemonic, "rinkeby");
+        } else {
+            this.initWeb3("", "rinkeby");
         }
     }
 
-    initWeb3 = (mnemonic) => {
+    initWeb3 = (mnemonic, netChoose) => {
+        let infuraApiKey;
+        if (netChoose === "rinkeby") {
+            let {etherscanAK, etherscanBaseUrl} = Config.rinkeby;
+            infuraApiKey = Config.rinkeby.infuraApiKey;
+            this.setState({etherscanAK, infuraApiKey, etherscanBaseUrl});
+        } else if (netChoose === "mainnet") {
+            let {etherscanAK, etherscanBaseUrl} = Config.mainnet;
+            infuraApiKey = Config.mainnet.infuraApiKey;
+            this.setState({etherscanAK, infuraApiKey, etherscanBaseUrl});
+        }
+
+
         let provider = new HdWalletProvider(mnemonic, infuraApiKey);
         let web3 = new Web3(provider);
         web3.eth.getAccounts().then(accounts => {
@@ -80,6 +100,7 @@ class App extends React.Component {
         let hexMsg = Buffer.from(transferMsg, "utf-8").toString("hex");
         console.log(hexMsg);
         alert("转账开始,等待确认/start transfer, waiting confirm");
+        this.setState({transferBtnMsg: "waiting for transfer...", disableTransfer: true});
         let receipt = await web3.eth.sendTransaction({
             from: account,
             to: transferTo,
@@ -88,6 +109,7 @@ class App extends React.Component {
             data: hexMsg
         });
         alert("转账成功,交易hash是/transfer success, trans hash is:" + receipt.transactionHash);
+        this.setState({transferBtnMsg: "transfer", disableTransfer: false});
         //转账后重新获取一下余额
         this.getBalance();
         console.table(receipt);
@@ -96,7 +118,7 @@ class App extends React.Component {
     getBalance = () => {
         let {account} = this.state;
         //使用etherScan 的 api 获取钱包余额
-        let getBalanceApi = `https://api-rinkeby.etherscan.io/api?module=account&action=balance&address=${account}&tag=latest&apikey=${etherscanAK}`;
+        let getBalanceApi = `https://${this.state.etherscanBaseUrl}/api?module=account&action=balance&address=${account}&tag=latest&apikey=${this.state.etherscanAK}`;
         fetch(getBalanceApi)
             .then(res => {
                 return res.json();
@@ -109,7 +131,7 @@ class App extends React.Component {
     //获取当前钱包的历史交易
     getTransactionInformation = () => {
         let {account} = this.state;
-        let transInfosApi = `https://api-rinkeby.etherscan.io/api?module=account&action=txlist&address=${account}&startblock=0&endblock=99999999&sort=asc&apikey=${etherscanAK}`;
+        let transInfosApi = `https://${this.state.etherscanBaseUrl}/api?module=account&action=txlist&address=${account}&startblock=0&endblock=99999999&sort=asc&apikey=${this.state.etherscanAK}`;
         fetch(transInfosApi)
             .then(res => {
                 return res.json();
@@ -142,10 +164,17 @@ class App extends React.Component {
 
     getTransFromHash = async (e) => {
         let {web3, transHash} = this.state;
-        let transaction = await web3.eth.getTransaction(transHash);
-        // let block =await web3.eth.getBlock(2936613);
-        // console.table(block);
-        this.setState({transactionInfo: transaction})
+        let transaction;
+        try {
+             transaction = await web3.eth.getTransaction(transHash);
+        } catch (error) {
+            console.info(JSON.stringify("catch error: "+JSON.stringify(error), null, 2),"\n ");
+        }
+        if (transaction) {
+            this.setState({transactionInfo: transaction})
+        }else{
+            alert("查询不到该交易/can't find transaction by this hash")
+        }
     };
 
 
@@ -168,6 +197,11 @@ class App extends React.Component {
     };
     onTransferMsgChange = (e) => {
         this.setState({transferMsg: e.target.value})
+    };
+    onNetChooseChange = (e) => {
+        let netChoose = e.target.value;
+        this.setState({netChoose});
+        this.initWeb3(this.state.mnemonic, netChoose);
     };
 
     render() {
@@ -198,7 +232,14 @@ class App extends React.Component {
             <div className="App">
                 <br/>
                 <br/>
-                <h1>Rinkeby测试网络钱包/Rinkeby Testnet Wallet</h1>
+                <h1>以太坊钱包/Ethereum Wallet</h1>
+                选择网络/choose a net:
+                <select value={this.state.netChoose} onChange={this.onNetChooseChange}>
+                    <option value="rinkeby">rinkeby</option>
+                    <option value="mainnet">mainnet</option>
+                </select>
+                <br/>
+
 
                 <input type="button" value={"点击获取助记词/Click To Generate Mnemonic"} onClick={this.generateMnemonic}/>
                 <br/>
@@ -241,7 +282,8 @@ class App extends React.Component {
                     value:<input type="number" value={this.state.transValue}
                                  onChange={this.onTransferValueChange}/>wei<br/>
                     msg:<textarea value={this.state.transferMsg} onChange={this.onTransferMsgChange}/><br/>
-                    <input type="button" value={"执行转账/transfer"} onClick={this.transferTo}/>
+                    <input type="button" value={this.state.transferBtnMsg} disabled={this.state.disableTransfer}
+                           onClick={this.transferTo}/>
                 </div>
                 <div>
                     <h2>获取历史交易/get history transactions</h2>

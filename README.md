@@ -14,27 +14,27 @@ Rinkeby测试网络的非节点简单钱包.github地址:https://github.com/cloc
 在src目录下生成config.js,填入以下内容,就可以`npm run start` 开始了
 
 ```js
-let etherscanAK = "you EtherScan ApiKey";
-let infuraApiKey = "your Infura ApiKey";
-
 module.exports={etherscanAK,infuraApiKey};
-```
-ps:install结束后,因为ethereumjs-wallet的hdkey换了位置,`truffle-hdwallet-provider/index.js`中,第二行中的:
 
-```
-var hdkey = require('ethereumjs-wallet/hdkey');
-```
+let Config={
+    rinkeby:{
+        etherscanAK:"you EtherScan ApiKey",
+        infuraApiKey:"your Infura ApiKey",
+        etherscanBaseUrl:"api-rinkeby.etherscan.io"
+    },
+    mainnet:{
+        etherscanAK:"you EtherScan ApiKey",
+        infuraApiKey:"your Infura ApiKey",
+        etherscanBaseUrl:"api.etherscan.io"
+    }
+};
 
-需要改为
-
+module.exports=Config;
 ```
-var hdkey = require('ethereumjs-wallet/dist/hdkey');
-```
-
 
 
 代码跑起来后的样子可见:http://193.112.157.22:3000/
 
 
 
-逻辑都在`/src/App.js`,EtherScan和infura的ApiKey如何获取请自己Google. 
+逻辑都在`/src/App.js`,EtherScan和infura的ApiKey 请查阅 [EtherScan](https://etherscan.io/apis) 和 [Infura](https://infura.io/) 获取.
